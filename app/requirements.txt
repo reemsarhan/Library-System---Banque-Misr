@@ -1,0 +1,5 @@
+Flask==2.3.0  # Specifies the version of Flask to use; Flask is a lightweight web framework for Python.
+
+psycopg2-binary==2.9.5  # Specifies the version of psycopg2-binary to use; psycopg2 is a PostgreSQL adapter for Python, and the binary package includes precompiled C extensions for improved performance.
+
+bcrypt==4.0.1  # Specifies the version of bcrypt to use; bcrypt is a library for hashing passwords securely.

@@ -1,0 +1,74 @@
+pipeline {
+    agent any
+
+    environment {
+        // Set environment variable for the AWS region
+        TF_VAR_region = 'us-west-2' // Change this to your desired region
+    }
+    
+    stages {
+        
+        stage('Clean Workspace') {
+            steps {
+                script {
+                    // Delete the entire workspace to ensure a clean build environment
+                    deleteDir() // Deletes the entire workspace
+                }
+            }
+        }
+        
+        stage('Clone Repository') {
+            steps {
+                script {
+                    // Clone the Git repository containing your project
+                    if (isUnix()) {
+                        // For Unix-based systems (Linux/Mac)
+                        sh 'git clone https://github.com/Itsyehia/Library-System---Banque-Misr.git'
+                    } else {
+                        // For Windows systems
+                        bat 'git clone https://github.com/Itsyehia/Library-System---Banque-Misr.git'
+                    }
+                }
+            }
+        }
+        
+        stage('Terraform Init and Apply') {
+            steps {
+                script {
+                    // Authenticate with AWS using credentials stored in Jenkins
+                    withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        // Check AWS identity to ensure correct credentials are being used
+                        if (isUnix()) {
+                            sh 'aws sts get-caller-identity'
+                            // Navigate to the Terraform configuration directory
+                            dir('Library-System---Banque-Misr/infrastructure/terraform/terraform-with-modules') { // Change to your Terraform directory
+                                // Initialize Terraform
+                                sh 'terraform init'
+                                // Generate and show an execution plan
+                                sh 'terraform plan'
+                                // Destroy any existing infrastructure (optional, for cleanup)
+                                sh 'terraform destroy --auto-approve'
+                                // Apply the Terraform configuration
+                                sh 'terraform apply --auto-approve'
+                            }
+                        } else {
+                            bat 'aws sts get-caller-identity'
+                            // Navigate to the Terraform configuration directory
+                            dir('Library-System---Banque-Misr/infrastructure/terraform/terraform-with-modules') { // Change to your Terraform directory
+                                // Initialize Terraform
+                                bat 'terraform init'
+                                // Generate and show an execution plan
+                                bat 'terraform plan'
+                                // Destroy any existing infrastructure (optional, for cleanup)
+                                bat 'terraform destroy --auto-approve'
+                                // Apply the Terraform configuration
+                                bat 'terraform apply --auto-approve'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+         
+    }
+}
